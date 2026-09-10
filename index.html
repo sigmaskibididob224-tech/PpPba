@@ -1,0 +1,2426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apoyo para la Presentación</title>
+<meta name="description" content="Organiza presentaciones limpias listas para copiar y pegar, analiza y formula fotos o textos de pizarras o libros escolares, extrae keywords continuas y practica con teleprompter inteligente." />
+<meta property="og:title" content="Apoyo para la Presentación" />
+<meta property="og:description" content="Organiza presentaciones limpias listas para copiar y pegar, analiza y formula fotos o textos de pizarras o libros escolares, extrae keywords continuas y practica con teleprompter inteligente." />
+<meta property="og:type" content="website" />
+<style>
+  :root{
+    --yellow:#ffd400;
+    --ink:#111111;
+    --sub:#555555;
+    --line:#e5e7eb;
+    --bg:#ffffff;
+    --card-bg:#ffffff;
+  }
+  *{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+  }
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  body{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  /* ================= PANTALLA DE BLOQUEO (PIN 5055) ================= */
+  #lock-screen{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    background:rgba(255,255,255,0.98);
+    backdrop-filter:blur(8px);
+    z-index:99999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .lock-card{
+    width:100%;
+    max-width:380px;
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:32px 26px;
+    text-align:center;
+    box-shadow:0 12px 36px rgba(0,0,0,0.06);
+  }
+  .lock-icon{
+    font-size:2.2rem;
+    margin-bottom:12px;
+  }
+  .lock-card h2{
+    margin:0 0 8px;
+    font-size:1.45rem;
+    font-weight:800;
+    color:#111;
+  }
+  .lock-card p{
+    font-size:0.9rem;
+    color:#666;
+    margin:0 0 20px;
+    line-height:1.45;
+  }
+  .pin-input{
+    width:100%;
+    font-size:1.8rem;
+    letter-spacing:0.35em;
+    text-align:center;
+    padding:10px 14px;
+    border:2px solid #111;
+    border-radius:12px;
+    margin-bottom:14px;
+    font-family:monospace;
+    font-weight:800;
+    background:#fafafa;
+    color:#111;
+  }
+  .pin-input:focus{
+    outline:none;
+    border-color:#111;
+    background:#fff;
+    box-shadow:0 0 0 3px rgba(255,212,0,0.4);
+  }
+  .lock-btn{
+    width:100%;
+    padding:12px 18px;
+    font-size:1rem;
+    font-weight:800;
+    border-radius:12px;
+    background:#111;
+    color:#fff;
+    border:none;
+    cursor:pointer;
+  }
+  .lock-btn:hover{ background:#222; }
+  .lock-error{
+    display:none;
+    margin-top:12px;
+    color:#b3261e;
+    font-size:0.85rem;
+    font-weight:700;
+  }
+  .lock-error.show{ display:block; }
+  .shake{
+    animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+  }
+  @keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+  }
+
+  /* ---------- Container principal ---------- */
+  #setup{
+    width:100%;
+    max-width:820px;
+    padding:32px 20px 80px;
+  }
+  .eyebrow{
+    font-size:0.72rem;
+    font-weight:800;
+    letter-spacing:0.12em;
+    color:#737373;
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  #setup h1{
+    font-size:clamp(1.8rem, 4.5vw, 2.5rem);
+    letter-spacing:-0.03em;
+    font-weight:800;
+    margin:0 0 10px;
+    color:#111;
+  }
+  #setup p.hint{
+    font-size:0.96rem;
+    color:var(--sub);
+    margin:0 0 16px;
+    line-height:1.5;
+    max-width:640px;
+  }
+
+  /* ================= VIÑETA EXTENSIBLE DE PUNTOS/TOKENS ================= */
+  .token-drawer-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    width:100%;
+    background:#fafafa;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 16px;
+    cursor:pointer;
+    margin-bottom:18px;
+    transition:background-color .15s ease, border-color .15s ease;
+  }
+  .token-drawer-toggle:hover{
+    background:#f3f4f6;
+    border-color:#d1d5db;
+  }
+  .token-drawer-title{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:0.86rem;
+    font-weight:700;
+    color:#111;
+  }
+  .token-badge-active{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#10b981;
+    display:inline-block;
+  }
+  .token-drawer-action{
+    font-size:0.82rem;
+    font-weight:700;
+    color:#4b5563;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .token-bar-card{
+    display:none;
+    background:#fafafa;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 18px;
+    margin-bottom:22px;
+  }
+  .token-bar-card.open{ display:block; }
+  .token-bar-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .token-numbers{
+    font-size:0.85rem;
+    color:#111;
+    font-weight:700;
+  }
+  .progress-track{
+    width:100%;
+    height:8px;
+    background:#e5e7eb;
+    border-radius:999px;
+    overflow:hidden;
+    margin-bottom:12px;
+  }
+  .progress-fill{
+    height:100%;
+    background:#10b981;
+    width:100%;
+    border-radius:999px;
+    transition:width 0.4s ease, background-color 0.4s ease;
+  }
+  .token-reset-time-banner{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:8px 12px;
+    font-size:0.82rem;
+    color:#374151;
+    font-weight:700;
+    margin-bottom:12px;
+  }
+  .token-estimates{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:8px;
+  }
+  .token-stat-pill{
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:8px 10px;
+    text-align:center;
+  }
+  .token-stat-num{
+    font-size:1.1rem;
+    font-weight:800;
+    color:#111;
+    display:block;
+    line-height:1.15;
+  }
+  .token-stat-lbl{
+    font-size:0.7rem;
+    color:#666;
+    font-weight:600;
+  }
+  .token-warning{
+    display:none;
+    margin-top:10px;
+    padding:8px 12px;
+    border-radius:8px;
+    background:#fffbeb;
+    border:1px solid #fde68a;
+    color:#92400e;
+    font-size:0.8rem;
+    font-weight:600;
+  }
+  .token-warning.show{ display:block; }
+
+  /* ---------- Pestañas de herramientas (5 opciones) ---------- */
+  .tool-tabs{
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:8px;
+    margin-bottom:22px;
+  }
+  .tool-tab{
+    border:1px solid var(--line);
+    background:#ffffff;
+    color:#222;
+    border-radius:12px;
+    padding:12px 10px;
+    text-align:left;
+    font-weight:700;
+    font-size:0.85rem;
+    cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,0.02);
+    transition:border-color .15s ease, background-color .15s ease;
+  }
+  .tool-tab:hover{
+    border-color:#bbb;
+    background:#fafafa;
+    color:#111;
+  }
+  .tool-tab:focus-visible{
+    outline:2px solid #000;
+    outline-offset:2px;
+  }
+  .tool-tab span.sub{
+    display:block;
+    font-weight:400;
+    font-size:0.72rem;
+    color:var(--sub);
+    margin-top:4px;
+    line-height:1.25;
+  }
+  .tool-tab.active{
+    border:2px solid var(--ink);
+    background:#fafafa;
+    color:#000;
+  }
+
+  /* ---------- Paneles de contenido ---------- */
+  .panel{
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:22px;
+    background:#fff;
+    box-shadow:0 8px 30px rgba(0,0,0,0.03);
+  }
+
+  textarea{
+    width:100%;
+    height:180px;
+    font-family: inherit;
+    font-size:0.96rem;
+    line-height:1.55;
+    padding:14px 16px;
+    border:1px solid #d4d4d8;
+    border-radius:12px;
+    resize:vertical;
+    color:#111;
+    background:#fff;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  textarea:focus{
+    outline:none;
+    border-color:#111;
+    box-shadow:0 0 0 3px rgba(255,212,0,0.35);
+  }
+
+  /* ---------- Subida de fotos ---------- */
+  .photo-dropzone{
+    border:2px dashed #d1d5db;
+    border-radius:14px;
+    padding:20px;
+    text-align:center;
+    background:#fafafa;
+    cursor:pointer;
+    transition:border-color .15s ease, background-color .15s ease;
+    margin-bottom:14px;
+  }
+  .photo-dropzone:hover{
+    border-color:#9ca3af;
+    background:#f3f4f6;
+  }
+  .photo-dropzone.dragover{
+    border-color:#111;
+    background:#f0fdf4;
+  }
+  .photo-preview-wrap{
+    display:none;
+    position:relative;
+    margin-bottom:14px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+    background:#000;
+    max-height:280px;
+  }
+  .photo-preview-wrap img{
+    width:100%;
+    max-height:280px;
+    object-fit:contain;
+    display:block;
+  }
+  .remove-photo-btn{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:rgba(0,0,0,0.75) !important;
+    color:#fff !important;
+    border:none !important;
+    border-radius:8px !important;
+    padding:6px 10px !important;
+    font-size:0.75rem !important;
+    cursor:pointer;
+  }
+  .remove-photo-btn:hover{
+    background:#000 !important;
+  }
+
+  /* ---------- Selectores y Botones (Sin volverse negros) ---------- */
+  .row{
+    display:flex;
+    gap:12px;
+    margin-top:16px;
+    flex-wrap:wrap;
+    align-items:flex-end;
+  }
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    flex:1;
+    min-width:160px;
+  }
+  .field-label{
+    font-size:0.75rem;
+    color:var(--sub);
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+  select{
+    font-family: inherit;
+    font-size:0.9rem;
+    padding:10px 12px;
+    border:1px solid #d4d4d8;
+    border-radius:10px;
+    background:#fff;
+    color:#111;
+  }
+  select:focus{
+    outline:none;
+    border-color:#111;
+  }
+
+  button{
+    font-family: inherit;
+    font-size:0.92rem;
+    padding:11px 18px;
+    border:1px solid #000;
+    border-radius:10px;
+    background:#000;
+    color:#fff;
+    cursor:pointer;
+    font-weight:700;
+    transition:background-color .15s ease, border-color .15s ease, transform .08s ease;
+  }
+  button:hover:not(:disabled){ background:#222; }
+  button:active:not(:disabled){ transform:scale(0.98); }
+  button:focus-visible{
+    outline:2px solid #000;
+    outline-offset:2px;
+  }
+  button:disabled{
+    opacity:0.45;
+    cursor:not-allowed;
+  }
+
+  /* Botones secundarios garantizados blanco/gris */
+  button.secondary{
+    background:#ffffff !important;
+    color:#111111 !important;
+    border:1px solid #d1d5db !important;
+  }
+  button.secondary:hover:not(:disabled){
+    background:#f4f4f5 !important;
+    border-color:#9ca3af !important;
+    color:#000 !important;
+  }
+  button.secondary:focus,
+  button.secondary:active{
+    background:#ebebeb !important;
+    color:#000 !important;
+    border-color:#666 !important;
+  }
+
+  /* Chips */
+  button.chip{
+    padding:8px 14px;
+    font-size:0.84rem;
+    border-radius:999px;
+  }
+  button.chip.active{
+    background:#000000 !important;
+    color:#ffffff !important;
+    border-color:#000000 !important;
+  }
+  button.chip:not(.active){
+    background:#ffffff !important;
+    color:#222222 !important;
+    border:1px solid #d1d5db !important;
+  }
+  button.chip:not(.active):hover{
+    background:#f4f4f5 !important;
+    color:#000000 !important;
+    border-color:#9ca3af !important;
+  }
+  button.chip:not(.active):focus,
+  button.chip:not(.active):active{
+    background:#e5e7eb !important;
+    color:#000000 !important;
+  }
+
+  /* Selector de nivel (Muy fácil / Fácil / Normal) */
+  .level-picker{
+    display:flex;
+    gap:6px;
+    background:#f3f4f6;
+    padding:4px;
+    border-radius:12px;
+    border:1px solid #e5e7eb;
+  }
+  .level-btn{
+    flex:1;
+    padding:8px 10px;
+    font-size:0.82rem;
+    font-weight:700;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    text-align:center;
+  }
+  .level-btn.active{
+    background:#000 !important;
+    color:#fff !important;
+  }
+  .level-btn:not(.active){
+    background:transparent !important;
+    color:#4b5563 !important;
+  }
+  .level-btn:not(.active):hover{
+    background:#e5e7eb !important;
+    color:#111 !important;
+  }
+
+  /* ---------- Diapositivas ---------- */
+  .slide-card{
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px 20px;
+    background:#ffffff;
+    box-shadow:0 3px 12px rgba(0,0,0,0.02);
+    margin-bottom:14px;
+  }
+  .slide-card.intro-frame, .slide-card.conclusion-frame{
+    background:#fafafa;
+    border-style:dashed;
+  }
+  .slide-card-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    padding-bottom:8px;
+    border-bottom:1px solid #f0f0f0;
+  }
+  .slide-num-label{
+    font-size:0.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:#737373;
+  }
+  .slide-title-wrap{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .slide-title-wrap h3{
+    margin:0;
+    font-size:1.18rem;
+    font-weight:800;
+    color:#111;
+    line-height:1.3;
+  }
+  .slide-content-wrap{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    background:#fbfbfb;
+    border:1px solid #eeeeee;
+    border-radius:10px;
+    padding:12px 14px;
+  }
+  .slide-content-text{
+    font-size:0.95rem;
+    line-height:1.6;
+    color:#222;
+    white-space:pre-line;
+    flex:1;
+  }
+
+  .copy-btn{
+    padding:6px 12px;
+    font-size:0.78rem;
+    font-weight:700;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    border-radius:8px;
+    border:1px solid #d1d5db !important;
+    background:#ffffff !important;
+    color:#111111 !important;
+    white-space:nowrap;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .copy-btn:hover{
+    background:#f4f4f5 !important;
+    border-color:#9ca3af !important;
+  }
+  .copy-btn:active, .copy-btn:focus{
+    background:#e5e7eb !important;
+  }
+  .copy-btn.copied{
+    background:#ecfdf5 !important;
+    border-color:#10b981 !important;
+    color:#047857 !important;
+  }
+
+  /* ---------- Keywords punto y aparte con flecha ---------- */
+  .keywords-list-box{
+    margin-top:18px;
+    background:#ffffff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px 20px;
+  }
+  .keyword-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 12px;
+    border-bottom:1px solid #f3f4f6;
+    gap:12px;
+  }
+  .keyword-row:last-child{ border-bottom:none; }
+  .keyword-text-wrap{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:1.05rem;
+    font-weight:700;
+    color:#111;
+  }
+  .keyword-arrow{
+    color:#111;
+    font-size:1.15rem;
+    font-weight:900;
+  }
+  .keyword-step-viewer{
+    margin-top:16px;
+    background:#fafafa;
+    border:2px solid #111;
+    border-radius:14px;
+    padding:20px;
+    text-align:center;
+  }
+  .keyword-step-label{
+    font-size:0.75rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:#666;
+    margin-bottom:8px;
+  }
+  .keyword-step-display{
+    font-size:clamp(1.5rem, 3.5vw, 2.2rem);
+    font-weight:800;
+    color:#111;
+    margin:12px 0 16px;
+    min-height:50px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+  }
+  .keyword-step-controls{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+  }
+
+  /* ---------- Chat Rápido ---------- */
+  .chat-box{
+    display:flex;
+    flex-direction:column;
+    height:460px;
+  }
+  .chat-messages{
+    flex:1;
+    overflow-y:auto;
+    padding:14px;
+    background:#fafafa;
+    border:1px solid var(--line);
+    border-radius:12px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-bottom:14px;
+  }
+  .chat-msg{
+    max-width:85%;
+    padding:10px 14px;
+    border-radius:12px;
+    font-size:0.92rem;
+    line-height:1.5;
+    word-break:break-word;
+  }
+  .chat-msg.user{
+    align-self:flex-end;
+    background:#111;
+    color:#fff;
+    border-bottom-right-radius:2px;
+  }
+  .chat-msg.bot{
+    align-self:flex-start;
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    color:#111;
+    border-bottom-left-radius:2px;
+  }
+  .chat-suggestions{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    margin-bottom:10px;
+  }
+  .chat-sugg-btn{
+    font-size:0.76rem;
+    padding:5px 10px;
+    border-radius:999px;
+    border:1px solid #e5e7eb;
+    background:#fff;
+    color:#4b5563;
+    cursor:pointer;
+  }
+  .chat-sugg-btn:hover{
+    background:#f3f4f6;
+    color:#111;
+  }
+  .chat-input-row{
+    display:flex;
+    gap:8px;
+  }
+  .chat-input-row input{
+    flex:1;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1px solid #d4d4d8;
+    font-size:0.95rem;
+    font-family:inherit;
+  }
+  .chat-input-row input:focus{
+    outline:none;
+    border-color:#111;
+  }
+
+  /* ---------- Explicación de Foto/Texto ---------- */
+  .photo-result-box{
+    margin-top:18px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px;
+    background:#fff;
+  }
+  .takeaway-badge{
+    background:#fef9c3;
+    border:1px solid #fde047;
+    border-radius:10px;
+    padding:10px 14px;
+    font-size:0.9rem;
+    font-weight:700;
+    color:#854d0e;
+    margin-bottom:16px;
+    line-height:1.4;
+  }
+
+  .status-msg{
+    font-size:0.88rem;
+    color:var(--sub);
+    margin-top:14px;
+    display:none;
+    align-items:center;
+    gap:8px;
+    font-weight:600;
+  }
+  .status-msg.show{ display:flex; }
+  .error-msg{
+    font-size:0.88rem;
+    color:#b3261e;
+    background:#fdf2f2;
+    border:1px solid #f8b4b4;
+    border-radius:10px;
+    padding:12px 14px;
+    margin-top:14px;
+    display:none;
+    line-height:1.45;
+  }
+  .error-msg.show{ display:block; }
+
+  .spinner{
+    display:inline-block;
+    width:16px;
+    height:16px;
+    border:2px solid #ddd;
+    border-top-color:#111;
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+    vertical-align:middle;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* ---------- Teleprompter Stage Screen ---------- */
+  #stage{
+    display:none;
+    width:100%;
+    height:100vh;
+    flex-direction:column;
+    background:#fff;
+  }
+  #topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 22px;
+    font-size:0.85rem;
+    color:#666;
+    border-bottom:1px solid #eee;
+  }
+  #status{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-weight:600;
+  }
+  #status-dot{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:#ccc;
+    display:inline-block;
+  }
+  #status-dot.live{
+    background:#e0483e;
+    box-shadow:0 0 0 3px rgba(224,72,62,0.2);
+  }
+  #teleprompter-wrap{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 7vw;
+    background:#fafafa;
+  }
+  #teleprompter{
+    position:relative;
+    width:100%;
+    max-width:920px;
+    height:calc(2 * 1.5 * clamp(1.9rem, 4vw, 3rem));
+    overflow:hidden;
+    line-height:1.5;
+    font-size:clamp(1.9rem, 4vw, 3rem);
+    font-weight:700;
+    scroll-behavior:smooth;
+    text-align:left;
+  }
+  #teleprompter span.word{
+    display:inline-block;
+    margin:0 0.2em 0 0;
+    padding:0.06em 0.1em;
+    border-radius:4px;
+    color:#000;
+  }
+  #teleprompter span.word.active{
+    background:var(--yellow);
+    box-shadow:0 0 0 2px var(--yellow);
+  }
+  #teleprompter span.word.done{ color:#c4c4c4; }
+  #bottombar{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    padding:16px 20px 28px;
+    border-top:1px solid #eee;
+  }
+  #mode-switch{ display:flex; gap:8px; }
+  #controls-row{ display:flex; gap:12px; align-items:center; }
+  #speed-row{ display:none; gap:8px; flex-wrap:wrap; justify-content:center; }
+
+  @media(max-width:850px){
+    .tool-tabs{ grid-template-columns:repeat(3, 1fr); }
+    .token-estimates{ grid-template-columns:repeat(2, 1fr); }
+  }
+  @media(max-width:600px){
+    .tool-tabs{ grid-template-columns:1fr; }
+    .token-estimates{ grid-template-columns:1fr; }
+    .row{ flex-direction:column; align-items:stretch; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ PANTALLA DE DESBLOQUEO POR PIN (5055) ============ -->
+<div id="lock-screen">
+  <div class="lock-card" id="lock-card-box">
+    <div class="lock-icon">🔒</div>
+    <h2>Acceso Protegido</h2>
+    <p>Introduce el código de acceso para desbloquear la aplicación.</p>
+    <form id="lock-form" onsubmit="return false;">
+      <input type="password" id="pin-input" class="pin-input" maxlength="4" placeholder="••••" autocomplete="off" autofocus>
+      <button type="button" class="lock-btn" id="unlock-btn">Desbloquear</button>
+      <div class="lock-error" id="lock-error-msg">Código incorrecto. Solo el código 5055 desbloquea la página.</div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ PANTALLA PRINCIPAL ============ -->
+<div id="setup">
+  <div class="eyebrow">Apoyo para presentaciones y estudio</div>
+  <h1>Prepara, organiza y practica</h1>
+  <p class="hint">Organiza diapositivas listas para copiar y pegar, analiza pizarras o libros (por foto o texto), saca keywords ultracortas, resuelve dudas con el chat rápido o ensaya con el teleprompter.</p>
+
+  <!-- ================= VIÑETA EXTENSIBLE DE CUOTA / PUNTOS ================= -->
+  <div class="token-drawer-toggle" id="token-drawer-toggle">
+    <div class="token-drawer-title">
+      <span class="token-badge-active"></span>
+      <span id="token-compact-label">📊 Desplegar cuánto te queda / puntos</span>
+    </div>
+    <div class="token-drawer-action" id="token-drawer-chevron">
+      <span>Ver detalles</span>
+      <span style="font-size:1.1rem;">▾</span>
+    </div>
+  </div>
+
+  <div class="token-bar-card" id="token-card">
+    <div class="token-bar-header">
+      <div style="font-size:0.86rem; font-weight:700; color:#111;">
+        Conectado a Gemini 3.8 Flash (Google AI Studio)
+      </div>
+      <div class="token-numbers" id="token-numbers-text">Cargando cuota real persistida...</div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="token-progress-bar"></div>
+    </div>
+
+    <!-- Tiempo que tarda en reiniciarse los puntos -->
+    <div class="token-reset-time-banner">
+      <span style="font-size:1.1rem;">⏳</span>
+      <span>Los puntos diarios se reinician en: <strong id="token-reset-timer">calculando...</strong> (00:00 UTC)</span>
+    </div>
+
+    <div class="token-estimates">
+      <div class="token-stat-pill">
+        <span class="token-stat-num" id="stat-remaining-slides">~830</span>
+        <span class="token-stat-lbl">Presentaciones restantes</span>
+      </div>
+      <div class="token-stat-pill">
+        <span class="token-stat-num" id="stat-remaining-photos">~900</span>
+        <span class="token-stat-lbl">Pizarras/libros restantes</span>
+      </div>
+      <div class="token-stat-pill">
+        <span class="token-stat-num" id="stat-remaining-keywords">~2,200</span>
+        <span class="token-stat-lbl">Keywords restantes</span>
+      </div>
+      <div class="token-stat-pill">
+        <span class="token-stat-num" id="stat-remaining-chat">~3,500</span>
+        <span class="token-stat-lbl">Preguntas de chat</span>
+      </div>
+    </div>
+    <div class="token-warning" id="token-low-warning">
+      ⚠️ Aviso: Te quedan pocos puntos en este ciclo. Planifica tus próximas consultas.
+    </div>
+  </div>
+
+  <!-- Pestañas de herramientas (5 opciones) -->
+  <div class="tool-tabs">
+    <button class="tool-tab active" id="toolSlides" type="button">
+      ▦ Organizar presentación
+      <span class="sub">Diapositivas limpias para copiar y pegar</span>
+    </button>
+    <button class="tool-tab" id="toolPhoto" type="button">
+      📸 Explicar pizarra/libro
+      <span class="sub">Por foto O pegando texto copiado</span>
+    </button>
+    <button class="tool-tab" id="toolKeywords" type="button">
+      🔑 Sacar keywords
+      <span class="sub">Ultracortas punto y aparte con flecha</span>
+    </button>
+    <button class="tool-tab" id="toolChat" type="button">
+      💬 Chat rápido
+      <span class="sub">Preguntas rápidas y respuestas inmediatas</span>
+    </button>
+    <button class="tool-tab" id="toolPractice" type="button">
+      🎤 Teleprompter
+      <span class="sub">Ensaya hablando con micrófono</span>
+    </button>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- PANEL 1: ORGANIZAR PRESENTACIÓN                -->
+  <!-- ============================================== -->
+  <div class="panel" id="panel-slides">
+    <div class="field" style="margin-bottom:12px;">
+      <span class="field-label">1. Texto o apuntes (opcional si subes foto)</span>
+      <textarea id="slides-text" placeholder="Pega aquí los apuntes que quieres estructurar en diapositivas listas para copiar y pegar..."></textarea>
+    </div>
+
+    <!-- Subir foto opcional de libro o apuntes -->
+    <div class="field" style="margin-bottom:14px;">
+      <span class="field-label">2. O sube una foto de libro o apuntes (opcional)</span>
+      <div class="photo-dropzone" id="slides-dropzone">
+        <div style="font-size:1.4rem; margin-bottom:4px;">📷</div>
+        <strong>Haz clic para elegir una foto o arrástrala aquí</strong>
+        <div style="font-size:0.78rem; color:#666; margin-top:4px;">Fotos de páginas de libros, fotocopias o esquemas (JPG, PNG, WEBP)</div>
+        <input type="file" id="slides-file-input" accept="image/*" style="display:none;">
+      </div>
+      <div class="photo-preview-wrap" id="slides-preview-wrap">
+        <img id="slides-preview-img" alt="Foto seleccionada">
+        <button type="button" class="remove-photo-btn" id="slides-remove-photo">✕ Quitar foto</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <span class="field-label">Nivel</span>
+        <select id="slides-school-level">
+          <option>1º ESO</option>
+          <option>2º ESO</option>
+          <option selected>3º ESO</option>
+          <option>4º ESO</option>
+          <option>1º Bachillerato</option>
+          <option>2º Bachillerato</option>
+          <option>Universidad</option>
+        </select>
+      </div>
+      <div class="field">
+        <span class="field-label">Longitud</span>
+        <select id="slides-summary-level">
+          <option value="verylong">Muy completa (6-8 diapositivas)</option>
+          <option value="long">Completa (5-6 diapositivas)</option>
+          <option value="medium" selected>Equilibrada (4-5 diapositivas)</option>
+          <option value="short">Corta (3-4 diapositivas)</option>
+          <option value="veryshort">Muy corta (2-3 diapositivas)</option>
+        </select>
+      </div>
+      <div class="field">
+        <span class="field-label">Estilo</span>
+        <select id="slides-writing-style">
+          <option selected>Claro y directo</option>
+          <option>Académico y formal</option>
+          <option>Fluido y dinámico</option>
+          <option>Visual con viñetas limpias</option>
+        </select>
+      </div>
+      <button id="make-slides-btn" type="button">Organizar presentación</button>
+    </div>
+
+    <div class="status-msg" id="slides-status"><span class="spinner"></span> Generando diapositivas estructuradas con Gemini...</div>
+    <div class="error-msg" id="slides-error"></div>
+
+    <div id="slides-output" style="margin-top:24px;"></div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- PANEL 2: EXPLICAR PIZARRA O LIBRO (FOTO O TEXTO)-->
+  <!-- ============================================== -->
+  <div class="panel" id="panel-photo" style="display:none;">
+    <div style="display:flex; gap:8px; margin-bottom:14px;">
+      <button type="button" class="chip active" id="explain-mode-photo-btn">📸 Usar foto de la pizarra/libro</button>
+      <button type="button" class="chip" id="explain-mode-text-btn">✍️ O pegar texto de la pizarra/libro</button>
+    </div>
+
+    <!-- Modo Foto -->
+    <div id="explain-photo-section">
+      <div class="field" style="margin-bottom:14px;">
+        <span class="field-label">1. Foto de la pizarra, libro o apuntes</span>
+        <div class="photo-dropzone" id="explain-dropzone">
+          <div style="font-size:1.6rem; margin-bottom:4px;">📸</div>
+          <strong>Haz clic para subir la foto de la pizarra o arrástrala aquí</strong>
+          <div style="font-size:0.78rem; color:#666; margin-top:4px;">Gemini leerá el texto, fórmulas, esquemas y palabras de la imagen</div>
+          <input type="file" id="explain-file-input" accept="image/*" style="display:none;">
+        </div>
+        <div class="photo-preview-wrap" id="explain-preview-wrap">
+          <img id="explain-preview-img" alt="Foto de la pizarra o libro">
+          <button type="button" class="remove-photo-btn" id="explain-remove-photo">✕ Quitar foto</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modo Texto copiado -->
+    <div id="explain-text-section" style="display:none;">
+      <div class="field" style="margin-bottom:14px;">
+        <span class="field-label">1. Pega el texto copiado de la pizarra o libro</span>
+        <textarea id="explain-pasted-text" placeholder="Pega aquí lo que decía la pizarra o el libro para que te lo formule y explique de forma fácil..."></textarea>
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:14px;">
+      <span class="field-label">2. Nivel de explicación que deseas</span>
+      <div class="level-picker" id="level-picker">
+        <button type="button" class="level-btn" data-level="muy fácil">Muy fácil (para entender a la primera)</button>
+        <button type="button" class="level-btn" data-level="fácil">Fácil (con ejemplos sencillos)</button>
+        <button type="button" class="level-btn active" data-level="normal">Normal (equilibrado)</button>
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:16px;">
+      <span class="field-label">3. Dudas o notas adicionales (opcional)</span>
+      <input type="text" id="explain-notes" style="padding:10px 14px; border-radius:10px; border:1px solid #d4d4d8; font-size:0.92rem;" placeholder="Ej: ¿Hay algo en concreto que quieras que aclare? (opcional)">
+    </div>
+
+    <button id="explain-photo-btn" type="button" style="width:100%;">Analizar y explicar contenido</button>
+
+    <div class="status-msg" id="explain-status"><span class="spinner"></span> Analizando y formulando la explicación pedagógica...</div>
+    <div class="error-msg" id="explain-error"></div>
+
+    <div id="explain-output"></div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- PANEL 3: SACAR KEYWORDS (PUNTO Y APARTE)       -->
+  <!-- ============================================== -->
+  <div class="panel" id="panel-keywords" style="display:none;">
+    <div class="field" style="margin-bottom:14px;">
+      <span class="field-label">Texto para extraer keywords breves</span>
+      <textarea id="keywords-text" placeholder="Pega aquí el tema o texto para extraer keywords ultra cortas (1-4 palabras por línea)..."></textarea>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <span class="field-label">Cantidad aproximada de keywords</span>
+        <select id="keywords-count">
+          <option value="4">4 keywords</option>
+          <option value="6">6 keywords</option>
+          <option value="8" selected>8 keywords</option>
+          <option value="12">12 keywords</option>
+          <option value="16">16 keywords</option>
+        </select>
+      </div>
+      <button id="make-keywords-btn" type="button">Extraer keywords punto y aparte</button>
+    </div>
+
+    <div class="status-msg" id="keywords-status"><span class="spinner"></span> Extrayendo keywords ultracortas línea por línea...</div>
+    <div class="error-msg" id="keywords-error"></div>
+
+    <div id="keywords-output"></div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- PANEL 4: CHAT RÁPIDO PARA PREGUNTAS AL INSTANTE-->
+  <!-- ============================================== -->
+  <div class="panel" id="panel-chat" style="display:none;">
+    <div class="chat-box">
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-msg bot">
+          ¡Hola! Soy tu asistente de exposición. Hazme cualquier pregunta rápida sobre tu tema, dudas de cómo empezar a hablar, vocabulario o datos y te respondo al instante.
+        </div>
+      </div>
+
+      <!-- Preguntas sugeridas -->
+      <div class="chat-suggestions">
+        <button type="button" class="chat-sugg-btn" data-q="¿Cómo inicio una exposición oral para llamar la atención?">¿Cómo inicio mi exposición?</button>
+        <button type="button" class="chat-sugg-btn" data-q="¿Cómo explico este concepto con una analogía simple de la vida diaria?">Dame una analogía simple</button>
+        <button type="button" class="chat-sugg-btn" data-q="¿Qué puedo decir si me quedo en blanco durante la presentación?">¿Qué hago si me quedo en blanco?</button>
+      </div>
+
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Escribe tu pregunta rápida aquí...">
+        <button type="button" id="chat-send-btn">Preguntar</button>
+      </div>
+      <div class="status-msg" id="chat-status" style="margin-top:6px;"><span class="spinner"></span> Pensando respuesta rápida...</div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- PANEL 5: TELEPROMPTER DIRECTO                  -->
+  <!-- ============================================== -->
+  <div class="panel" id="panel-practice" style="display:none;">
+    <div class="field">
+      <span class="field-label">Texto a practicar</span>
+      <textarea id="script-input" placeholder="Pega aquí el texto que quieres ensayar hablando frente al teleprompter..."></textarea>
+    </div>
+    <div class="row">
+      <div class="field">
+        <span class="field-label">Idioma del micrófono</span>
+        <select id="lang-select">
+          <option value="es-ES">Español (España)</option>
+          <option value="es-MX">Español (México / Latam)</option>
+          <option value="en-US">English (US)</option>
+        </select>
+      </div>
+      <button id="start-btn" type="button">Abrir teleprompter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TELEPROMPTER STAGE ============ -->
+<div id="stage">
+  <div id="topbar">
+    <div id="status">
+      <span id="status-dot"></span>
+      <span id="status-label">Parado</span>
+    </div>
+    <button class="secondary" id="edit-btn" type="button">Volver al editor</button>
+  </div>
+
+  <div id="teleprompter-wrap">
+    <div id="teleprompter"></div>
+  </div>
+
+  <div id="bottombar">
+    <div id="mode-switch">
+      <button class="chip active" id="mode-voice-btn" type="button">Modo micrófono</button>
+      <button class="chip" id="mode-auto-btn" type="button">Modo automático</button>
+    </div>
+
+    <div id="speed-row">
+      <button class="chip" data-wpm="60" type="button">Muy lenta</button>
+      <button class="chip" data-wpm="80" type="button">Lenta</button>
+      <button class="chip" data-wpm="100" type="button">Moderada</button>
+      <button class="chip active" data-wpm="140" type="button">Normal</button>
+      <button class="chip" data-wpm="180" type="button">Rápida</button>
+      <button class="chip" data-wpm="220" type="button">Muy rápida</button>
+    </div>
+
+    <div id="controls-row">
+      <button class="secondary" id="back-btn" type="button">« palabra</button>
+      <button id="play-btn" type="button">Escuchar</button>
+      <button class="secondary" id="fwd-btn" type="button">palabra »</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* =========================================================
+     PANTALLA DE DESBLOQUEO POR PIN (SOLO 5055)
+     ========================================================= */
+  const lockScreen = document.getElementById('lock-screen');
+  const pinInput = document.getElementById('pin-input');
+  const unlockBtn = document.getElementById('unlock-btn');
+  const lockErrorMsg = document.getElementById('lock-error-msg');
+  const lockCardBox = document.getElementById('lock-card-box');
+
+  // Si ya se desbloqueó en la sesión activa del navegador, mantener desbloqueado
+  if(sessionStorage.getItem('app_unlocked_code') === '5055'){
+    lockScreen.style.display = 'none';
+  }
+
+  function tryUnlock(){
+    const val = pinInput.value.trim();
+    if(val === '5055'){
+      sessionStorage.setItem('app_unlocked_code', '5055');
+      lockScreen.style.opacity = '0';
+      lockScreen.style.transition = 'opacity 0.25s ease';
+      setTimeout(() => {
+        lockScreen.style.display = 'none';
+      }, 250);
+    } else {
+      lockErrorMsg.classList.add('show');
+      lockCardBox.classList.remove('shake');
+      void lockCardBox.offsetWidth; // trigger reflow
+      lockCardBox.classList.add('shake');
+      pinInput.value = '';
+      pinInput.focus();
+    }
+  }
+
+  unlockBtn.addEventListener('click', tryUnlock);
+  pinInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') tryUnlock();
+  });
+
+  /* =========================================================
+     GESTIÓN DE TOKENS, PERSISTENCIA REAL Y CUENTA ATRÁS
+     ========================================================= */
+  const tokenDrawerToggle = document.getElementById('token-drawer-toggle');
+  const tokenDrawerChevron = document.getElementById('token-drawer-chevron');
+  const tokenCard = document.getElementById('token-card');
+  const tokenCompactLabel = document.getElementById('token-compact-label');
+  const tokenNumbersText = document.getElementById('token-numbers-text');
+  const tokenProgressBar = document.getElementById('token-progress-bar');
+  const tokenResetTimer = document.getElementById('token-reset-timer');
+  const statRemainingSlides = document.getElementById('stat-remaining-slides');
+  const statRemainingPhotos = document.getElementById('stat-remaining-photos');
+  const statRemainingKeywords = document.getElementById('stat-remaining-keywords');
+  const statRemainingChat = document.getElementById('stat-remaining-chat');
+  const tokenLowWarning = document.getElementById('token-low-warning');
+
+  let isDrawerOpen = false;
+  tokenDrawerToggle.addEventListener('click', () => {
+    isDrawerOpen = !isDrawerOpen;
+    tokenCard.classList.toggle('open', isDrawerOpen);
+    tokenDrawerChevron.innerHTML = isDrawerOpen ? '<span>Plegar</span> <span style="font-size:1.1rem;">▴</span>' : '<span>Ver detalles</span> <span style="font-size:1.1rem;">▾</span>';
+  });
+
+  let serverMsUntilReset = 0;
+  let lastSyncTime = Date.now();
+
+  function updateResetTimerDisplay(){
+    const elapsed = Date.now() - lastSyncTime;
+    const remainingMs = Math.max(0, serverMsUntilReset - elapsed);
+
+    const totalSeconds = Math.floor(remainingMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const formatted = `${hours}h ${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`;
+    tokenResetTimer.textContent = formatted;
+  }
+  setInterval(updateResetTimerDisplay, 1000);
+
+  function updateTokenUI(stats){
+    if(!stats) return;
+    const totalUsed = stats.totalUsed || 0;
+    const limit = stats.dailyLimit || 1000000;
+    const remaining = stats.remainingTokens != null ? stats.remainingTokens : Math.max(0, limit - totalUsed);
+    const pct = Math.max(0, Math.min(100, (remaining / limit) * 100));
+
+    tokenCompactLabel.textContent = `📊 Cuota: ${remaining.toLocaleString()} puntos restantes de ${limit.toLocaleString()}`;
+    tokenNumbersText.textContent = `${remaining.toLocaleString()} puntos restantes (usados: ${totalUsed.toLocaleString()})`;
+    tokenProgressBar.style.width = pct + '%';
+
+    if(pct < 15){
+      tokenProgressBar.style.backgroundColor = '#ef4444';
+      tokenLowWarning.classList.add('show');
+    } else if(pct < 35){
+      tokenProgressBar.style.backgroundColor = '#f59e0b';
+      tokenLowWarning.classList.remove('show');
+    } else {
+      tokenProgressBar.style.backgroundColor = '#10b981';
+      tokenLowWarning.classList.remove('show');
+    }
+
+    statRemainingSlides.textContent = `~${(stats.remainingSlides || Math.floor(remaining / 1200)).toLocaleString()}`;
+    statRemainingPhotos.textContent = `~${(stats.remainingPhotoAnalysis || Math.floor(remaining / 1100)).toLocaleString()}`;
+    statRemainingKeywords.textContent = `~${(stats.remainingKeywords || Math.floor(remaining / 450)).toLocaleString()}`;
+    if(statRemainingChat){
+      statRemainingChat.textContent = `~${(stats.remainingQuickQuestions || Math.floor(remaining / 280)).toLocaleString()}`;
+    }
+
+    if(stats.msUntilReset){
+      serverMsUntilReset = stats.msUntilReset;
+      lastSyncTime = Date.now();
+      updateResetTimerDisplay();
+    }
+  }
+
+  async function fetchTokenStats(){
+    try{
+      const res = await fetch('/api/tokens');
+      if(res.ok){
+        const data = await res.json();
+        updateTokenUI(data);
+      }
+    }catch(e){}
+  }
+  fetchTokenStats();
+
+  /* =========================================================
+     NAVEGACIÓN ENTRE PESTAÑAS (5 HERRAMIENTAS)
+     ========================================================= */
+  const toolSlides = document.getElementById('toolSlides');
+  const toolPhoto = document.getElementById('toolPhoto');
+  const toolKeywords = document.getElementById('toolKeywords');
+  const toolChat = document.getElementById('toolChat');
+  const toolPractice = document.getElementById('toolPractice');
+
+  const panelSlides = document.getElementById('panel-slides');
+  const panelPhoto = document.getElementById('panel-photo');
+  const panelKeywords = document.getElementById('panel-keywords');
+  const panelChat = document.getElementById('panel-chat');
+  const panelPractice = document.getElementById('panel-practice');
+
+  const allTabs = [toolSlides, toolPhoto, toolKeywords, toolChat, toolPractice];
+  const allPanels = [panelSlides, panelPhoto, panelKeywords, panelChat, panelPractice];
+
+  function switchTab(activeTab, activePanel){
+    allTabs.forEach(t => t.classList.remove('active'));
+    allPanels.forEach(p => p.style.display = 'none');
+
+    activeTab.classList.add('active');
+    activePanel.style.display = '';
+  }
+
+  toolSlides.addEventListener('click', () => switchTab(toolSlides, panelSlides));
+  toolPhoto.addEventListener('click', () => switchTab(toolPhoto, panelPhoto));
+  toolKeywords.addEventListener('click', () => switchTab(toolKeywords, panelKeywords));
+  toolChat.addEventListener('click', () => switchTab(toolChat, panelChat));
+  toolPractice.addEventListener('click', () => switchTab(toolPractice, panelPractice));
+
+  /* =========================================================
+     UTILIDADES GENERALES Y COPIADO
+     ========================================================= */
+  function escapeHTML(str){
+    return String(str || '').replace(/[&<>"]/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'
+    }[c]));
+  }
+
+  async function copyText(text, btn){
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+    }catch(e){
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    const originalHTML = btn.innerHTML;
+    btn.classList.add('copied');
+    btn.innerHTML = '✓ Copiado';
+    setTimeout(()=>{
+      btn.classList.remove('copied');
+      btn.innerHTML = originalHTML;
+    }, 1400);
+  }
+
+  function fileToBase64(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        const mimeType = file.type || 'image/jpeg';
+        const base64Data = result.split(',')[1];
+        resolve({ data: base64Data, mimeType, dataUrl: result });
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* =========================================================
+     HERRAMIENTA 1: ORGANIZAR PRESENTACIÓN
+     ========================================================= */
+  const slidesText = document.getElementById('slides-text');
+  const slidesDropzone = document.getElementById('slides-dropzone');
+  const slidesFileInput = document.getElementById('slides-file-input');
+  const slidesPreviewWrap = document.getElementById('slides-preview-wrap');
+  const slidesPreviewImg = document.getElementById('slides-preview-img');
+  const slidesRemovePhoto = document.getElementById('slides-remove-photo');
+
+  const slidesSchoolLevel = document.getElementById('slides-school-level');
+  const slidesSummaryLevel = document.getElementById('slides-summary-level');
+  const slidesWritingStyle = document.getElementById('slides-writing-style');
+  const makeSlidesBtn = document.getElementById('make-slides-btn');
+  const slidesStatus = document.getElementById('slides-status');
+  const slidesError = document.getElementById('slides-error');
+  const slidesOutput = document.getElementById('slides-output');
+
+  let slidesImageData = null;
+
+  slidesDropzone.addEventListener('click', () => slidesFileInput.click());
+  slidesDropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    slidesDropzone.classList.add('dragover');
+  });
+  slidesDropzone.addEventListener('dragleave', () => slidesDropzone.classList.remove('dragover'));
+  slidesDropzone.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    slidesDropzone.classList.remove('dragover');
+    if(e.dataTransfer.files && e.dataTransfer.files[0]){
+      handleSlidesFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  slidesFileInput.addEventListener('change', () => {
+    if(slidesFileInput.files && slidesFileInput.files[0]){
+      handleSlidesFile(slidesFileInput.files[0]);
+    }
+  });
+
+  async function handleSlidesFile(file){
+    if(!file.type.startsWith('image/')) return;
+    try{
+      const res = await fileToBase64(file);
+      slidesImageData = { data: res.data, mimeType: res.mimeType };
+      slidesPreviewImg.src = res.dataUrl;
+      slidesPreviewWrap.style.display = 'block';
+      slidesDropzone.style.display = 'none';
+    }catch(e){}
+  }
+
+  slidesRemovePhoto.addEventListener('click', (e) => {
+    e.stopPropagation();
+    slidesImageData = null;
+    slidesFileInput.value = '';
+    slidesPreviewWrap.style.display = 'none';
+    slidesDropzone.style.display = 'block';
+  });
+
+  makeSlidesBtn.addEventListener('click', async () => {
+    const text = slidesText.value.trim();
+    if(!text && !slidesImageData){
+      slidesError.textContent = 'Por favor pega un texto o sube una foto con los apuntes a organizar.';
+      slidesError.classList.add('show');
+      return;
+    }
+
+    slidesError.classList.remove('show');
+    slidesOutput.innerHTML = '';
+    slidesStatus.classList.add('show');
+    makeSlidesBtn.disabled = true;
+
+    try{
+      const response = await fetch('/api/slides', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          image: slidesImageData,
+          schoolLevel: slidesSchoolLevel.value,
+          summaryLevel: slidesSummaryLevel.value,
+          writingStyle: slidesWritingStyle.value
+        })
+      });
+
+      const data = await response.json();
+      if(!response.ok){
+        throw new Error(data.error || 'Error en el servidor al generar las diapositivas.');
+      }
+
+      if(data.tokenUsage?.session){
+        updateTokenUI(data.tokenUsage.session);
+      }
+
+      renderCleanSlides(data);
+    }catch(err){
+      slidesError.textContent = err.message || 'No se pudo generar la presentación.';
+      slidesError.classList.add('show');
+    }finally{
+      slidesStatus.classList.remove('show');
+      makeSlidesBtn.disabled = false;
+    }
+  });
+
+  function renderCleanSlides(pres){
+    const slides = Array.isArray(pres.slides) ? pres.slides : [];
+    const htmlCards = [];
+
+    htmlCards.push(`
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:18px; padding-bottom:14px; border-bottom:2px solid #e5e7eb;">
+        <div>
+          <div style="font-size:1.45rem; font-weight:800; color:#111;">${escapeHTML(pres.title)}</div>
+          <div style="font-size:0.82rem; color:#666; margin-top:4px;">${escapeHTML(slidesSchoolLevel.value)} · ${slides.length + 2} diapositivas listas para PowerPoint / Slides</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="copy-btn" id="copy-all-slides-btn" style="padding:9px 16px; font-size:0.86rem; font-weight:800;">
+            📋 Copiar toda la presentación
+          </button>
+          <button type="button" class="secondary" id="send-to-teleprompter-btn" style="padding:9px 14px; font-size:0.84rem;">
+            🎤 Ensayar en teleprompter
+          </button>
+        </div>
+      </div>
+    `);
+
+    if(pres.intro){
+      htmlCards.push(`
+        <div class="slide-card intro-frame">
+          <div class="slide-card-header">
+            <span class="slide-num-label">Diapositiva de apertura · Introducción</span>
+            <button type="button" class="copy-btn" data-copy-text="${encodeURIComponent(pres.intro)}">
+              📋 Copiar introducción
+            </button>
+          </div>
+          <div class="slide-content-text">${escapeHTML(pres.intro)}</div>
+        </div>
+      `);
+    }
+
+    slides.forEach((s, idx) => {
+      htmlCards.push(`
+        <div class="slide-card">
+          <div class="slide-card-header">
+            <span class="slide-num-label">Diapositiva ${idx + 1} de ${slides.length}</span>
+          </div>
+          <div class="slide-title-wrap">
+            <h3>${escapeHTML(s.title || 'Diapositiva ' + (idx + 1))}</h3>
+            <button type="button" class="copy-btn" data-copy-text="${encodeURIComponent(s.title || '')}">
+              📑 Copiar título
+            </button>
+          </div>
+          <div class="slide-content-wrap">
+            <div class="slide-content-text">${escapeHTML(s.content || '')}</div>
+            <button type="button" class="copy-btn" data-copy-text="${encodeURIComponent(s.content || '')}">
+              📋 Copiar contenido
+            </button>
+          </div>
+        </div>
+      `);
+    });
+
+    if(pres.conclusion){
+      htmlCards.push(`
+        <div class="slide-card conclusion-frame">
+          <div class="slide-card-header">
+            <span class="slide-num-label">Diapositiva final · Conclusión</span>
+            <button type="button" class="copy-btn" data-copy-text="${encodeURIComponent(pres.conclusion)}">
+              📋 Copiar conclusión
+            </button>
+          </div>
+          <div class="slide-content-text">${escapeHTML(pres.conclusion)}</div>
+        </div>
+      `);
+    }
+
+    slidesOutput.innerHTML = htmlCards.join('');
+
+    slidesOutput.querySelectorAll('[data-copy-text]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = decodeURIComponent(btn.dataset.copyText || '');
+        copyText(text, btn);
+      });
+    });
+
+    const copyAllBtn = document.getElementById('copy-all-slides-btn');
+    if(copyAllBtn){
+      copyAllBtn.addEventListener('click', () => {
+        const lines = [
+          pres.title,
+          '==============================',
+          '',
+          'INTRODUCCIÓN:',
+          pres.intro || '',
+          ''
+        ];
+
+        slides.forEach((s, idx) => {
+          lines.push(`DIAPOSITIVA ${idx + 1}: ${s.title || ''}`);
+          lines.push(s.content || '');
+          lines.push('');
+        });
+
+        if(pres.conclusion){
+          lines.push('CONCLUSIÓN:');
+          lines.push(pres.conclusion);
+        }
+
+        copyText(lines.join('\n'), copyAllBtn);
+      });
+    }
+
+    const sendPracticeBtn = document.getElementById('send-to-teleprompter-btn');
+    if(sendPracticeBtn){
+      sendPracticeBtn.addEventListener('click', () => {
+        const parts = [pres.intro || ''];
+        slides.forEach(s => {
+          parts.push((s.title || '') + ':\n' + (s.content || ''));
+        });
+        if(pres.conclusion) parts.push(pres.conclusion);
+        scriptInput.value = parts.filter(Boolean).join('\n\n');
+        switchTab(toolPractice, panelPractice);
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      });
+    }
+  }
+
+  /* =========================================================
+     HERRAMIENTA 2: EXPLICAR PIZARRA O LIBRO (FOTO O TEXTO)
+     ========================================================= */
+  const explainModePhotoBtn = document.getElementById('explain-mode-photo-btn');
+  const explainModeTextBtn = document.getElementById('explain-mode-text-btn');
+  const explainPhotoSection = document.getElementById('explain-photo-section');
+  const explainTextSection = document.getElementById('explain-text-section');
+  const explainPastedText = document.getElementById('explain-pasted-text');
+
+  const explainDropzone = document.getElementById('explain-dropzone');
+  const explainFileInput = document.getElementById('explain-file-input');
+  const explainPreviewWrap = document.getElementById('explain-preview-wrap');
+  const explainPreviewImg = document.getElementById('explain-preview-img');
+  const explainRemovePhoto = document.getElementById('explain-remove-photo');
+  const explainNotes = document.getElementById('explain-notes');
+  const explainPhotoBtn = document.getElementById('explain-photo-btn');
+  const explainStatus = document.getElementById('explain-status');
+  const explainError = document.getElementById('explain-error');
+  const explainOutput = document.getElementById('explain-output');
+  const levelPicker = document.getElementById('level-picker');
+
+  let explainImageData = null;
+  let selectedLevel = 'normal';
+  let explainMode = 'photo'; // 'photo' o 'text'
+
+  explainModePhotoBtn.addEventListener('click', () => {
+    explainMode = 'photo';
+    explainModePhotoBtn.classList.add('active');
+    explainModeTextBtn.classList.remove('active');
+    explainPhotoSection.style.display = 'block';
+    explainTextSection.style.display = 'none';
+  });
+
+  explainModeTextBtn.addEventListener('click', () => {
+    explainMode = 'text';
+    explainModeTextBtn.classList.add('active');
+    explainModePhotoBtn.classList.remove('active');
+    explainPhotoSection.style.display = 'none';
+    explainTextSection.style.display = 'block';
+  });
+
+  levelPicker.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      levelPicker.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedLevel = btn.dataset.level || 'normal';
+    });
+  });
+
+  explainDropzone.addEventListener('click', () => explainFileInput.click());
+  explainDropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    explainDropzone.classList.add('dragover');
+  });
+  explainDropzone.addEventListener('dragleave', () => explainDropzone.classList.remove('dragover'));
+  explainDropzone.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    explainDropzone.classList.remove('dragover');
+    if(e.dataTransfer.files && e.dataTransfer.files[0]){
+      handleExplainFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  explainFileInput.addEventListener('change', () => {
+    if(explainFileInput.files && explainFileInput.files[0]){
+      handleExplainFile(explainFileInput.files[0]);
+    }
+  });
+
+  async function handleExplainFile(file){
+    if(!file.type.startsWith('image/')) return;
+    try{
+      const res = await fileToBase64(file);
+      explainImageData = { data: res.data, mimeType: res.mimeType };
+      explainPreviewImg.src = res.dataUrl;
+      explainPreviewWrap.style.display = 'block';
+      explainDropzone.style.display = 'none';
+    }catch(e){}
+  }
+
+  explainRemovePhoto.addEventListener('click', (e) => {
+    e.stopPropagation();
+    explainImageData = null;
+    explainFileInput.value = '';
+    explainPreviewWrap.style.display = 'none';
+    explainDropzone.style.display = 'block';
+  });
+
+  explainPhotoBtn.addEventListener('click', async () => {
+    const pastedText = explainPastedText.value.trim();
+
+    if(explainMode === 'photo' && !explainImageData){
+      explainError.textContent = 'Por favor selecciona o arrastra la foto de la pizarra o libro, o cambia al modo de pegar texto.';
+      explainError.classList.add('show');
+      return;
+    }
+    if(explainMode === 'text' && !pastedText){
+      explainError.textContent = 'Por favor pega el texto copiado de la pizarra o libro que quieres que te explique.';
+      explainError.classList.add('show');
+      return;
+    }
+
+    explainError.classList.remove('show');
+    explainOutput.innerHTML = '';
+    explainStatus.classList.add('show');
+    explainPhotoBtn.disabled = true;
+
+    try{
+      const response = await fetch('/api/explain-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: explainMode === 'photo' ? explainImageData : null,
+          text: explainMode === 'text' ? pastedText : '',
+          notes: explainNotes.value.trim(),
+          level: selectedLevel
+        })
+      });
+
+      const data = await response.json();
+      if(!response.ok){
+        throw new Error(data.error || 'Error al formular la explicación.');
+      }
+
+      if(data.tokenUsage?.session){
+        updateTokenUI(data.tokenUsage.session);
+      }
+
+      renderPhotoExplanation(data);
+    }catch(err){
+      explainError.textContent = err.message || 'No se pudo analizar el contenido.';
+      explainError.classList.add('show');
+    }finally{
+      explainStatus.classList.remove('show');
+      explainPhotoBtn.disabled = false;
+    }
+  });
+
+  function renderPhotoExplanation(res){
+    const keyPoints = Array.isArray(res.keyPoints) ? res.keyPoints : [];
+
+    explainOutput.innerHTML = `
+      <div class="photo-result-box">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #eee;">
+          <div>
+            <div style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:#737373;">Tema identificado</div>
+            <h2 style="margin:2px 0 0; font-size:1.35rem; color:#111;">${escapeHTML(res.title)}</h2>
+          </div>
+          <button type="button" class="copy-btn" id="copy-photo-title-btn">
+            📑 Copiar título
+          </button>
+        </div>
+
+        ${res.oneSentenceTakeaway ? `
+          <div class="takeaway-badge">
+            💡 <strong>Idea clave para recordar:</strong> ${escapeHTML(res.oneSentenceTakeaway)}
+          </div>
+        ` : ''}
+
+        <div style="margin-bottom:16px;">
+          <strong style="display:block; font-size:0.86rem; color:#555; text-transform:uppercase; margin-bottom:4px;">Contenido sintetizado de la pizarra / libro:</strong>
+          <div style="background:#fafafa; border:1px solid #eee; border-radius:10px; padding:12px 14px; font-size:0.92rem; line-height:1.55; color:#333;">
+            ${escapeHTML(res.photoContentSummary)}
+          </div>
+        </div>
+
+        <div style="margin-bottom:18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong style="font-size:0.86rem; color:#111; text-transform:uppercase;">Explicación clara formulada (Nivel: ${escapeHTML(selectedLevel)}):</strong>
+            <button type="button" class="copy-btn" id="copy-photo-expl-btn">
+              📋 Copiar explicación
+            </button>
+          </div>
+          <div style="background:#fcfcfc; border:1px solid #e5e7eb; border-radius:10px; padding:14px 16px; font-size:0.98rem; line-height:1.65; color:#111; white-space:pre-line;">
+            ${escapeHTML(res.explanation)}
+          </div>
+        </div>
+
+        ${keyPoints.length ? `
+          <div style="margin-bottom:18px;">
+            <strong style="display:block; font-size:0.86rem; color:#111; text-transform:uppercase; margin-bottom:8px;">Puntos clave paso a paso:</strong>
+            <ul style="margin:0; padding-left:22px; line-height:1.65; font-size:0.95rem; color:#222;">
+              ${keyPoints.map(p => `<li style="margin-bottom:6px;">${escapeHTML(p)}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; padding-top:14px; border-top:1px solid #eee;">
+          <button type="button" class="copy-btn" id="copy-photo-all-btn" style="padding:10px 18px; font-size:0.88rem; font-weight:800;">
+            📋 Copiar análisis completo
+          </button>
+          <button type="button" class="secondary" id="photo-to-slides-btn" style="padding:10px 16px; font-size:0.85rem;">
+            ▦ Convertir en presentación
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('copy-photo-title-btn')?.addEventListener('click', (e) => {
+      copyText(res.title || '', e.currentTarget);
+    });
+
+    document.getElementById('copy-photo-expl-btn')?.addEventListener('click', (e) => {
+      copyText(res.explanation || '', e.currentTarget);
+    });
+
+    document.getElementById('copy-photo-all-btn')?.addEventListener('click', (e) => {
+      const allText = [
+        res.title,
+        '================================',
+        res.oneSentenceTakeaway ? `IDEA CLAVE: ${res.oneSentenceTakeaway}\n` : '',
+        'EXPLICACIÓN:',
+        res.explanation,
+        '',
+        'PUNTOS CLAVE:',
+        ...keyPoints.map((p, i) => `${i + 1}. ${p}`)
+      ].join('\n');
+      copyText(allText, e.currentTarget);
+    });
+
+    document.getElementById('photo-to-slides-btn')?.addEventListener('click', () => {
+      slidesText.value = `${res.title}\n\n${res.explanation}\n\n${keyPoints.join('\n')}`;
+      switchTab(toolSlides, panelSlides);
+      window.scrollTo({top: 0, behavior: 'smooth'});
+      makeSlidesBtn.click();
+    });
+  }
+
+  /* =========================================================
+     HERRAMIENTA 3: SACAR KEYWORDS (PUNTO Y APARTE CON FLECHA)
+     ========================================================= */
+  const keywordsText = document.getElementById('keywords-text');
+  const keywordsCount = document.getElementById('keywords-count');
+  const makeKeywordsBtn = document.getElementById('make-keywords-btn');
+  const keywordsStatus = document.getElementById('keywords-status');
+  const keywordsError = document.getElementById('keywords-error');
+  const keywordsOutput = document.getElementById('keywords-output');
+
+  let activeKeywordsList = [];
+  let currentKeywordIndex = 0;
+
+  makeKeywordsBtn.addEventListener('click', async () => {
+    const text = keywordsText.value.trim();
+    if(!text){
+      keywordsError.textContent = 'Por favor pega primero el texto para extraer las keywords.';
+      keywordsError.classList.add('show');
+      return;
+    }
+
+    keywordsError.classList.remove('show');
+    keywordsOutput.innerHTML = '';
+    keywordsStatus.classList.add('show');
+    makeKeywordsBtn.disabled = true;
+
+    try{
+      const response = await fetch('/api/keywords', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          count: keywordsCount.value
+        })
+      });
+
+      const data = await response.json();
+      if(!response.ok){
+        throw new Error(data.error || 'Error al procesar las keywords.');
+      }
+
+      if(data.tokenUsage?.session){
+        updateTokenUI(data.tokenUsage.session);
+      }
+
+      renderKeywordsList(data);
+    }catch(err){
+      keywordsError.textContent = err.message || 'No se pudieron generar las keywords.';
+      keywordsError.classList.add('show');
+    }finally{
+      keywordsStatus.classList.remove('show');
+      makeKeywordsBtn.disabled = false;
+    }
+  });
+
+  function renderKeywordsList(res){
+    const list = Array.isArray(res.keywordsList) && res.keywordsList.length > 0 
+      ? res.keywordsList 
+      : (res.formattedText ? res.formattedText.split('\n').filter(Boolean) : []);
+
+    activeKeywordsList = list;
+    currentKeywordIndex = 0;
+
+    const fullCleanText = list.join('\n');
+    const fullArrowText = list.map(k => `→ ${k}`).join('\n');
+
+    let html = `
+      <div class="keywords-list-box">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid #eee;">
+          <div>
+            <strong style="font-size:1.15rem; color:#111;">Keywords extraídas (Punto y aparte)</strong>
+            <div style="font-size:0.8rem; color:#666; margin-top:2px;">${list.length} palabras clave ultracortas para seguir al hablar</div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="copy-btn" id="copy-all-kw-clean-btn" style="font-weight:800;">
+              📋 Copiar todas
+            </button>
+            <button type="button" class="copy-btn" id="copy-all-kw-arrows-btn">
+              → Copiar con flechitas
+            </button>
+          </div>
+        </div>
+
+        <div id="keywords-lines-container">
+          ${list.map((kw) => `
+            <div class="keyword-row">
+              <div class="keyword-text-wrap">
+                <span class="keyword-arrow">→</span>
+                <span>${escapeHTML(kw)}</span>
+              </div>
+              <button type="button" class="copy-btn" data-kw-copy="${encodeURIComponent(kw)}">
+                Copiar
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="keyword-step-viewer">
+        <div class="keyword-step-label">Flechita para seguir tu exposición en directo</div>
+        <div class="keyword-step-display" id="kw-step-display">
+          <span style="color:#000;">→</span>
+          <span id="kw-step-text">${escapeHTML(list[0] || '')}</span>
+        </div>
+        <div style="font-size:0.8rem; color:#666; margin-bottom:14px;" id="kw-step-counter">
+          Keyword 1 de ${list.length}
+        </div>
+        <div class="keyword-step-controls">
+          <button type="button" class="secondary" id="kw-step-prev" style="padding:8px 16px;">
+            ← Anterior
+          </button>
+          <button type="button" id="kw-step-next" style="padding:8px 22px;">
+            Siguiente →
+          </button>
+        </div>
+      </div>
+    `;
+
+    keywordsOutput.innerHTML = html;
+
+    document.getElementById('copy-all-kw-clean-btn')?.addEventListener('click', (e) => {
+      copyText(fullCleanText, e.currentTarget);
+    });
+
+    document.getElementById('copy-all-kw-arrows-btn')?.addEventListener('click', (e) => {
+      copyText(fullArrowText, e.currentTarget);
+    });
+
+    keywordsOutput.querySelectorAll('[data-kw-copy]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = decodeURIComponent(btn.dataset.kwCopy || '');
+        copyText(text, btn);
+      });
+    });
+
+    const stepText = document.getElementById('kw-step-text');
+    const stepCounter = document.getElementById('kw-step-counter');
+    const prevBtn = document.getElementById('kw-step-prev');
+    const nextBtn = document.getElementById('kw-step-next');
+
+    function updateStepViewer(){
+      if(!activeKeywordsList.length) return;
+      if(stepText) stepText.textContent = activeKeywordsList[currentKeywordIndex];
+      if(stepCounter) stepCounter.textContent = `Keyword ${currentKeywordIndex + 1} de ${activeKeywordsList.length}`;
+    }
+
+    nextBtn?.addEventListener('click', () => {
+      if(currentKeywordIndex < activeKeywordsList.length - 1){
+        currentKeywordIndex++;
+      } else {
+        currentKeywordIndex = 0;
+      }
+      updateStepViewer();
+    });
+
+    prevBtn?.addEventListener('click', () => {
+      if(currentKeywordIndex > 0){
+        currentKeywordIndex--;
+      } else {
+        currentKeywordIndex = activeKeywordsList.length - 1;
+      }
+      updateStepViewer();
+    });
+  }
+
+  /* =========================================================
+     HERRAMIENTA 4: CHAT RÁPIDO PARA PREGUNTAS AL INSTANTE
+     ========================================================= */
+  const chatMessages = document.getElementById('chat-messages');
+  const chatInput = document.getElementById('chat-input');
+  const chatSendBtn = document.getElementById('chat-send-btn');
+  const chatStatus = document.getElementById('chat-status');
+  let chatHistory = [];
+
+  async function sendChatMessage(msgText){
+    const q = msgText || chatInput.value.trim();
+    if(!q) return;
+
+    appendChatMsg('user', q);
+    chatInput.value = '';
+    chatStatus.classList.add('show');
+    chatSendBtn.disabled = true;
+
+    chatHistory.push({ role: 'user', text: q });
+
+    try{
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: q,
+          history: chatHistory
+        })
+      });
+
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Error al consultar al chat rápido.');
+
+      chatHistory.push({ role: 'assistant', text: data.reply });
+      appendChatMsg('bot', data.reply);
+
+      if(data.tokenUsage?.session){
+        updateTokenUI(data.tokenUsage.session);
+      }
+    }catch(err){
+      appendChatMsg('bot', '❌ ' + (err.message || 'No se pudo responder la pregunta.'));
+    }finally{
+      chatStatus.classList.remove('show');
+      chatSendBtn.disabled = false;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  }
+
+  function appendChatMsg(role, text){
+    const div = document.createElement('div');
+    div.className = `chat-msg ${role}`;
+    div.textContent = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  chatSendBtn.addEventListener('click', () => sendChatMessage());
+  chatInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') sendChatMessage();
+  });
+
+  document.querySelectorAll('.chat-sugg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const q = btn.dataset.q;
+      sendChatMessage(q);
+    });
+  });
+
+  /* =========================================================
+     HERRAMIENTA 5: TELEPROMPTER INTELIGENTE
+     ========================================================= */
+  const setupEl = document.getElementById('setup');
+  const stageEl = document.getElementById('stage');
+  const scriptInput = document.getElementById('script-input');
+  const langSelect = document.getElementById('lang-select');
+  const startBtn = document.getElementById('start-btn');
+  const editBtn = document.getElementById('edit-btn');
+  const playBtn = document.getElementById('play-btn');
+  const statusDot = document.getElementById('status-dot');
+  const statusLabel = document.getElementById('status-label');
+  const teleprompter = document.getElementById('teleprompter');
+  const backBtn = document.getElementById('back-btn');
+  const fwdBtn = document.getElementById('fwd-btn');
+  const modeVoiceBtn = document.getElementById('mode-voice-btn');
+  const modeAutoBtn = document.getElementById('mode-auto-btn');
+  const speedRow = document.getElementById('speed-row');
+  const speedButtons = Array.from(speedRow.querySelectorAll('button'));
+
+  let words = [];
+  let wordEls = [];
+  let currentIndex = 0;
+  let mode = 'voice';
+  let running = false;
+  let recognition = null;
+  let wpm = 140;
+  let autoTimer = null;
+
+  function normalize(str){
+    return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9\s]/g,'').trim();
+  }
+
+  function levenshtein(a, b){
+    const m = a.length, n = b.length;
+    if(m === 0) return n;
+    if(n === 0) return m;
+    const dp = new Array(n+1);
+    for(let j=0; j<=n; j++) dp[j]=j;
+    for(let i=1; i<=m; i++){
+      let prev = dp[0];
+      dp[0] = i;
+      for(let j=1; j<=n; j++){
+        const tmp = dp[j];
+        dp[j] = Math.min(dp[j]+1, dp[j-1]+1, prev + (a[i-1]===b[j-1]?0:1));
+        prev = tmp;
+      }
+    }
+    return dp[n];
+  }
+
+  function similarity(a, b){
+    if(!a.length && !b.length) return 1;
+    if(!a.length || !b.length) return 0;
+    return 1 - levenshtein(a,b) / Math.max(a.length, b.length);
+  }
+
+  function cleanToken(s){
+    return normalize(s).replace(/[.,;:!?¿¡"“”'()]/g,'').trim();
+  }
+
+  function tokenSimilarity(a, b){
+    a = cleanToken(a); b = cleanToken(b);
+    if(!a || !b) return 0;
+    if(a === b) return 1;
+    if(a.length >= 4 && b.startsWith(a)) return 0.94;
+    if(b.length >= 4 && a.startsWith(b)) return 0.94;
+    return similarity(a, b);
+  }
+
+  function buildScript(text){
+    const rawWords = text.split(/\s+/).filter(Boolean);
+    words = rawWords.map(w => ({raw: w, norm: normalize(w)}));
+    teleprompter.innerHTML = '';
+    wordEls = words.map((w, i) => {
+      const span = document.createElement('span');
+      span.className = 'word';
+      span.textContent = w.raw;
+      span.dataset.index = i;
+      teleprompter.appendChild(span);
+      return span;
+    });
+    currentIndex = 0;
+    requestAnimationFrame(highlightCurrent);
+  }
+
+  function highlightCurrent(){
+    wordEls.forEach((el, i) => {
+      el.classList.remove('active','done');
+      if(i < currentIndex) el.classList.add('done');
+      if(i === currentIndex) el.classList.add('active');
+    });
+    scrollToCurrent();
+  }
+
+  function scrollToCurrent(){
+    const el = wordEls[currentIndex] || wordEls[wordEls.length-1];
+    if(!el) return;
+    teleprompter.scrollTo({top: el.offsetTop - 30, behavior:'smooth'});
+  }
+
+  function advanceTo(index){
+    if(index <= currentIndex) return;
+    currentIndex = Math.min(index, words.length - 1);
+    highlightCurrent();
+  }
+
+  function stepOne(delta){
+    currentIndex = Math.max(0, Math.min(words.length-1, currentIndex + delta));
+    highlightCurrent();
+  }
+
+  function processSpeechTokens(text){
+    const heard = normalize(text).split(/\s+/).filter(Boolean);
+    if(!heard.length || currentIndex >= words.length) return;
+    let cursor = currentIndex;
+    let matched = 0;
+    for(const raw of heard.slice(-12)){
+      const h = cleanToken(raw);
+      if(!h) continue;
+      let best = {idx:-1, score:0};
+      for(let j=cursor; j<Math.min(words.length, cursor+6); j++){
+        const score = tokenSimilarity(h, words[j].norm);
+        const penalty = (j - cursor) * 0.035;
+        const adjusted = score - penalty;
+        if(adjusted > best.score) best = {idx: j, score: adjusted};
+      }
+      if(best.idx !== -1 && best.score >= 0.78){
+        cursor = best.idx + 1;
+        matched = cursor - currentIndex;
+      }
+    }
+    if(matched > 0) advanceTo(cursor);
+  }
+
+  function getRecognition(){
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SpeechRecognition) return null;
+    const rec = new SpeechRecognition();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.maxAlternatives = 3;
+    rec.lang = langSelect.value;
+    rec.onresult = (event) => {
+      let combined = '';
+      for(let i=event.resultIndex; i<event.results.length; i++){
+        const r = event.results[i];
+        if(r && r[0]) combined += ' ' + r[0].transcript;
+      }
+      if(combined.trim()) processSpeechTokens(combined);
+    };
+    rec.onerror = (event) => {
+      if(!running || mode !== 'voice') return;
+      if(event.error === 'not-allowed' || event.error === 'service-not-allowed'){
+        statusLabel.textContent = 'Permite el micrófono en el navegador.';
+      }
+    };
+    rec.onend = () => {
+      if(running && mode === 'voice'){
+        setTimeout(() => {
+          if(running && mode === 'voice'){ try{ rec.start(); }catch(e){} }
+        }, 30);
+      }
+    };
+    return rec;
+  }
+
+  function startVoice(){
+    recognition = getRecognition();
+    if(!recognition){
+      statusLabel.textContent = 'Tu navegador no soporta micrófono. Prueba en Google Chrome.';
+      return;
+    }
+    running = true;
+    try{ recognition.start(); }catch(e){}
+    statusDot.classList.add('live');
+    statusLabel.textContent = 'Escuchando tu voz...';
+    playBtn.textContent = 'Detener';
+  }
+
+  function stopVoice(){
+    running = false;
+    if(recognition){ try{ recognition.stop(); }catch(e){} }
+    statusDot.classList.remove('live');
+    statusLabel.textContent = 'Parado';
+    playBtn.textContent = 'Escuchar';
+  }
+
+  function startAuto(){
+    running = true;
+    const intervalMs = 60000 / wpm;
+    autoTimer = setInterval(() => {
+      if(currentIndex >= words.length - 1){ stopAuto(); return; }
+      stepOne(1);
+    }, intervalMs);
+    statusDot.classList.add('live');
+    statusLabel.textContent = 'Avanzando automáticamente...';
+    playBtn.textContent = 'Pausar';
+  }
+
+  function stopAuto(){
+    running = false;
+    if(autoTimer) clearInterval(autoTimer);
+    autoTimer = null;
+    statusDot.classList.remove('live');
+    statusLabel.textContent = 'Pausado';
+    playBtn.textContent = 'Reanudar';
+  }
+
+  function stopEverything(){ stopVoice(); stopAuto(); }
+
+  playBtn.addEventListener('click', () => {
+    if(mode === 'voice'){ running ? stopVoice() : startVoice(); }
+    else { running ? stopAuto() : startAuto(); }
+  });
+  backBtn.addEventListener('click', () => stepOne(-1));
+  fwdBtn.addEventListener('click', () => stepOne(1));
+
+  modeVoiceBtn.addEventListener('click', () => {
+    if(mode === 'voice') return;
+    stopEverything();
+    mode = 'voice';
+    modeVoiceBtn.classList.add('active');
+    modeAutoBtn.classList.remove('active');
+    speedRow.style.display = 'none';
+    playBtn.textContent = 'Escuchar';
+    statusLabel.textContent = 'Parado';
+  });
+
+  modeAutoBtn.addEventListener('click', () => {
+    if(mode === 'auto') return;
+    stopEverything();
+    mode = 'auto';
+    modeAutoBtn.classList.add('active');
+    modeVoiceBtn.classList.remove('active');
+    speedRow.style.display = 'flex';
+    playBtn.textContent = 'Reproducir';
+    statusLabel.textContent = 'Pausado';
+  });
+
+  speedButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      speedButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      wpm = Number(btn.dataset.wpm);
+      if(running && mode === 'auto'){ stopAuto(); startAuto(); }
+    });
+  });
+
+  function goToStage(text){
+    buildScript(text);
+    setupEl.style.display = 'none';
+    stageEl.style.display = 'flex';
+  }
+
+  startBtn.addEventListener('click', () => {
+    const text = scriptInput.value.trim();
+    if(!text){
+      scriptInput.focus();
+      return;
+    }
+    goToStage(text);
+  });
+
+  editBtn.addEventListener('click', () => {
+    stopEverything();
+    stageEl.style.display = 'none';
+    setupEl.style.display = 'block';
+  });
+
+  window.addEventListener('resize', () => requestAnimationFrame(scrollToCurrent));
+
+})();
+</script>
+</body>
+</html>

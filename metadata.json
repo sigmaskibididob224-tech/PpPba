@@ -1,0 +1,10 @@
+{
+  "name": "Apoyo para la Presentación",
+  "description": "Organiza presentaciones limpias listas para copiar y pegar, analiza y formula fotos de pizarras o libros escolares, extrae keywords continuas y practica con teleprompter inteligente.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
